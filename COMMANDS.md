@@ -16,23 +16,21 @@ make build         # Build application for Linux (Docker compatible)
 make clean         # Clean build artifacts and coverage files
 ```
 
-### 🐳 Docker - Hybrid Email System
-
-The project uses a **hybrid email system** that allows easy switching between development and production modes:
+### 🐳 Docker - Local building and email sending
 
 ```bash
 # Build Docker image
 make docker-build
 
-# Development Mode (Email Testing),
+# Development Mode (Email Testing), you can use this for checking the emails in this http://localhost:8025 before sending
 make docker-run-mailhog    # 🧪 MailHog captures emails (no real sending)
                            # Web UI: http://localhost:8025
 
-# Local testing with real email sending via SMPT
+# You can use this for locally sending real email to specific reciepent
 make docker-run-gmail      
 
-# Interactive Mode Selection
-make docker-run-interactive # 🔄  This allow you to chose between mailhog or gmail(and work same as those above)
+# You can use this for choosing between mailhog or gmail interactively(You can ignore this if you tested both before)
+make docker-run-interactive # 🔄
 
 # Container Management
 make docker-down           # Stop all containers
@@ -53,11 +51,16 @@ Located in `./scripts/` directory for AWS deployment:
 
 ### Core Lambda Operations
 ```bash
-# Build Lambda function
+# Build Lambda function responsable for processing transactions and sending emails
 ./scripts/build-lambda.sh
 # → Builds Go binary for Linux
 # → Creates stori-lambda.zip deployment package
 # → Runs tests first
+
+# Second step: Verify SES email, you are going to receive an email for verifify the account in order to proceed with next steps
+./scripts/verify-emails.sh recipient@example.com
+# → Initiates SES email verification
+# → Checks verification status
 
 # Deploy to AWS Lambda
 ./scripts/deploy-lambda.sh recipient@example.com [function-name]
@@ -79,17 +82,6 @@ Located in `./scripts/` directory for AWS deployment:
 # → Cleans local build artifacts
 # → Preserves S3 bucket (manual cleanup)
 ```
-
-### Additional AWS Scripts
-```bash
-# Email verification management
-./scripts/verify-emails.sh recipient@example.com
-# → Initiates SES email verification
-# → Checks verification status
-
-```
-
----
 
 ## 🧪 Quick Start Workflows
 
