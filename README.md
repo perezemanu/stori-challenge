@@ -185,7 +185,3 @@ For complete command reference, see `COMMANDS.md`
 **Professional Email**: HTML templates with complete Stori branding  
 **Dual Architecture**: Development flexibility (Docker) + Production scalability (Serverless)  
 **Robust Testing**: Unit tests + E2E + data validation
-
----
-
-**Estimated evaluation time**: 2 minutes setup + 3 minutes review = **5 minutes total**
