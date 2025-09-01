@@ -54,7 +54,7 @@ func (c *Calculator) groupTransactionsByMonth(transactions []*domain.Transaction
 	monthlyData := make(map[string][]*domain.Transaction)
 
 	for _, tx := range transactions {
-		monthKey := tx.Date.Format("January") // e.g., "July", "August"
+		monthKey := tx.Date.Format("January")
 		monthlyData[monthKey] = append(monthlyData[monthKey], tx)
 	}
 
@@ -95,7 +95,6 @@ func (c *Calculator) calculateMonthlySummary(monthKey string, transactions []*do
 		}
 	}
 
-	// Calculate averages
 	var averageCredit, averageDebit decimal.Decimal
 
 	if creditCount > 0 {
@@ -155,16 +154,13 @@ func (c *Calculator) parseMonth(monthName string) time.Month {
 func (c *Calculator) FormatSummaryForEmail(summary *domain.AccountSummary) string {
 	var result string
 
-	// Total balance
 	result += fmt.Sprintf("Total balance is %s\n", summary.TotalBalance.StringFixed(2))
 
-	// Monthly transaction counts
 	for monthName, monthlySummary := range summary.MonthlySummaries {
 		result += fmt.Sprintf("Number of transactions in %s: %d\n",
 			monthName, monthlySummary.TransactionCount)
 	}
 
-	// Calculate overall averages across all months
 	totalCredits := decimal.Zero
 	totalDebits := decimal.Zero
 	totalCreditCount := 0
@@ -177,13 +173,11 @@ func (c *Calculator) FormatSummaryForEmail(summary *domain.AccountSummary) strin
 		totalDebitCount += monthlySummary.DebitCount
 	}
 
-	// Average debit amount (should be negative)
 	if totalDebitCount > 0 {
 		averageDebit := totalDebits.Div(decimal.NewFromInt(int64(totalDebitCount)))
 		result += fmt.Sprintf("Average debit amount: %s\n", averageDebit.StringFixed(2))
 	}
 
-	// Average credit amount (should be positive)
 	if totalCreditCount > 0 {
 		averageCredit := totalCredits.Div(decimal.NewFromInt(int64(totalCreditCount)))
 		result += fmt.Sprintf("Average credit amount: %s", averageCredit.StringFixed(2))

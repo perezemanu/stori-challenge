@@ -73,7 +73,7 @@ func (r *Reader) ReadTransactions(ctx context.Context, filePath, accountID strin
 	defer reader.Close()
 
 	csvReader := csv.NewReader(reader)
-	csvReader.FieldsPerRecord = 3 // Enforce exactly 3 fields per record
+	csvReader.FieldsPerRecord = 3
 
 	var transactions []*domain.Transaction
 	lineNumber := 0
@@ -148,16 +148,16 @@ func (r *Reader) parseTransaction(record []string, accountID string) (*domain.Tr
 
 func (r *Reader) parseDate(dateStr string) (time.Time, error) {
 	formats := []string{
-		"1/2",        // M/D (assuming current year)
-		"1/02",       // M/DD (assuming current year)
-		"01/2",       // MM/D (assuming current year)
-		"01/02",      // MM/DD (assuming current year)
-		"1/2/2006",   // M/D/YYYY
-		"1/02/2006",  // M/DD/YYYY
-		"01/2/2006",  // MM/D/YYYY
-		"01/02/2006", // MM/DD/YYYY
-		"2006-01-02", // YYYY-MM-DD
-		"2006/01/02", // YYYY/MM/DD
+		"1/2",
+		"1/02",
+		"01/2",
+		"01/02",
+		"1/2/2006",
+		"1/02/2006",
+		"01/2/2006",
+		"01/02/2006",
+		"2006-01-02",
+		"2006/01/02",
 	}
 
 	for _, format := range formats {

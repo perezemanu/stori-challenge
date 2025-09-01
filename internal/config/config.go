@@ -19,7 +19,7 @@ type Config struct {
 // Database configuration for local development (SQLite)
 // AWS Lambda doesn't use database - processes transactions in memory
 type Database struct {
-	Driver string `envconfig:"DB_DRIVER" default:"sqlite"` // Always SQLite for local dev
+	Driver string `envconfig:"DB_DRIVER" default:"sqlite"`
 }
 
 type Email struct {
@@ -54,7 +54,7 @@ type Email struct {
 }
 
 type Security struct {
-	MaxFileSize       int64         `envconfig:"MAX_FILE_SIZE" default:"10485760"` // 10MB
+	MaxFileSize       int64         `envconfig:"MAX_FILE_SIZE" default:"10485760"`
 	AllowedExtensions []string      `envconfig:"ALLOWED_EXTENSIONS" default:"csv"`
 	ProcessTimeout    time.Duration `envconfig:"PROCESS_TIMEOUT" default:"30s"`
 	MaxTransactions   int           `envconfig:"MAX_TRANSACTIONS" default:"100000"`
