@@ -28,7 +28,6 @@ type Processor struct {
 	recipientEmail  string
 }
 
-// NewProcessor creates a new processor instance
 func NewProcessor(
 	transactionRepo repository.TransactionRepository,
 	emailService EmailService,
@@ -47,14 +46,11 @@ func NewProcessor(
 	}
 }
 
-// ProcessFile processes a single CSV file
 func (p *Processor) ProcessFile(ctx context.Context, filePath string) error {
 	p.logger.Info("Starting file processing", zap.String("file", filePath))
 
-	// Extract account ID from filename (or use default)
 	accountID := p.extractAccountIDFromFilename(filePath)
 
-	// Read transactions from CSV
 	transactions, err := p.csvReader.ReadTransactions(ctx, filePath, accountID)
 	if err != nil {
 		return fmt.Errorf("failed to read transactions from CSV: %w", err)
@@ -73,7 +69,6 @@ func (p *Processor) ProcessFile(ctx context.Context, filePath string) error {
 			return fmt.Errorf("failed to store transactions in database: %w", err)
 		}
 
-		// Count actual transactions in database for this account
 		count, err := p.transactionRepo.Count(accountID)
 		if err != nil {
 			p.logger.Warn("Failed to count transactions in database", zap.Error(err))
@@ -92,16 +87,13 @@ func (p *Processor) ProcessFile(ctx context.Context, filePath string) error {
 		)
 	}
 
-	// Calculate summary
 	summary, err := p.calculator.CalculateSummary(accountID, transactions)
 	if err != nil {
 		return fmt.Errorf("failed to calculate summary: %w", err)
 	}
 
-	// Format summary for email
 	emailBody := p.calculator.FormatSummaryForEmail(summary)
 
-	// Send summary email
 	subject := fmt.Sprintf("Stori Account Summary - %s", accountID)
 	if err := p.emailService.SendSummaryEmail(subject, emailBody); err != nil {
 		return fmt.Errorf("failed to send summary email: %w", err)
@@ -127,14 +119,10 @@ func (p *Processor) ProcessBatch(ctx context.Context, filePaths []string) error 
 	return nil
 }
 
-// extractAccountIDFromFilename extracts account ID from filename
 func (p *Processor) extractAccountIDFromFilename(filePath string) string {
 	filename := filepath.Base(filePath)
-
-	// Remove extension
 	name := strings.TrimSuffix(filename, filepath.Ext(filename))
 
-	// Use filename as account ID, or default if empty
 	if name == "" || name == "transactions" {
 		return "default-account"
 	}

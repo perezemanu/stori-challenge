@@ -31,12 +31,10 @@ func NewReader(s3Client *aws.S3Client, logger *zap.Logger) *Reader {
 	}
 }
 
-// ReadTransactions reads transactions from a CSV file or S3 object
 func (r *Reader) ReadTransactions(ctx context.Context, filePath, accountID string) ([]*domain.Transaction, error) {
 	var reader io.ReadCloser
 	var err error
 
-	// Check if it's an S3 URL
 	if strings.HasPrefix(filePath, "s3://") {
 		if r.s3Client == nil {
 			return nil, fmt.Errorf("S3 client not configured for S3 path: %s", filePath)

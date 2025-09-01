@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Stori Challenge - Transaction Processing Lambda
+
+Parameters:
+  SenderEmail:
+    Type: String
+    Default: perezetchegaraymanuel@gmail.com
+    Description: Email address to send summaries from (must be verified in SES)
+  
+  BucketName:
+    Type: String
+    Default: stori-challenge-manuuu-1756656646
+    Description: S3 bucket for CSV files and processed results
+
+Globals:
+  Function:
+    Timeout: 300
+    MemorySize: 512
+    Runtime: go1.21
+    Environment:
+      Variables:
+        SENDER_EMAIL: !Ref SenderEmail
+        S3_BUCKET: !Ref BucketName
+        LOG_LEVEL: info
+
+Resources:
+  # Lambda function for processing CSV files
+  TransactionProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: stori-transaction-processor
+      CodeUri: ./
+      Handler: cmd/lambda/main
+      Description: Process CSV transactions and send email summaries
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref TransactionBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: input/
+                  - Name: suffix
+                    Value: .csv
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref BucketName
+        - S3WritePolicy:
+            BucketName: !Ref BucketName
+        - SESCrudPolicy:
+            IdentityName: !Ref SenderEmail
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+
+  # S3 bucket for CSV files (reference existing bucket)
+  TransactionBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      PublicReadPolicy: false
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt TransactionProcessorFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: input/
+                  - Name: suffix
+                    Value: .csv
+
+  # Permission for S3 to invoke Lambda
+  S3InvokeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref TransactionProcessorFunction
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub 'arn:aws:s3:::${BucketName}'
+
+Outputs:
+  TransactionProcessorFunction:
+    Description: Transaction Processor Lambda Function ARN
+    Value: !GetAtt TransactionProcessorFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-TransactionProcessorFunction'
+
+  TransactionBucket:
+    Description: S3 Bucket for CSV files
+    Value: !Ref TransactionBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-TransactionBucket'
+
+  SenderEmail:
+    Description: Email address for sending summaries
+    Value: !Ref SenderEmail
+    Export:
+      Name: !Sub '${AWS::StackName}-SenderEmail'

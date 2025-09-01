@@ -91,13 +91,10 @@ update_with_retry() {
             sleep $delay
         fi
         
-        # Wait for Lambda to be ready before attempting update
         if ! wait_for_lambda_ready "$FUNCTION_NAME" 60; then
             log_error "Lambda not ready for operation: $operation"
             return 1
         fi
-        
-        # Execute the operation
         case "$operation" in
             "code")
                 output=$(aws lambda update-function-code \
@@ -117,19 +114,16 @@ update_with_retry() {
                 ;;
         esac
         
-        # Check if operation succeeded
         if [ $exit_code -eq 0 ]; then
             log_info "✅ $operation update completed successfully"
             return 0
         fi
         
-        # Check if it's a ResourceConflictException (update in progress)
         if echo "$output" | grep -q "ResourceConflictException\|update is in progress"; then
             log_warn "⏳ Lambda update conflict detected, will retry..."
             retry_count=$((retry_count + 1))
             continue
         else
-            # Different error, don't retry
             log_error "$operation update failed with non-retryable error"
             return $exit_code
         fi
@@ -139,15 +133,12 @@ update_with_retry() {
     return 1
 }
 
-# Validate input
 if [ -z "$RECIPIENT_EMAIL" ]; then
     log_error "Email recipient is required!"
     echo "Usage: $0 <recipient-email> [function-name]"
     echo "Example: $0 evaluator@example.com stori-processor"
     exit 1
 fi
-
-# Validate email format
 if [[ ! "$RECIPIENT_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
     log_error "Invalid email format: $RECIPIENT_EMAIL"
     exit 1
@@ -157,24 +148,20 @@ log_info "Starting Lambda deployment for Stori Challenge"
 log_info "Target recipient: $RECIPIENT_EMAIL"
 log_info "Lambda function: $FUNCTION_NAME"
 
-# Check if AWS CLI is installed
 if ! command -v aws &> /dev/null; then
     log_error "AWS CLI is not installed. Please install it first."
     exit 1
 fi
 
-# Check AWS credentials
 if ! aws sts get-caller-identity &> /dev/null; then
     log_error "AWS credentials not configured. Please run 'aws configure' first."
     exit 1
 fi
 
-# Create build directory
 log_info "Creating build directory..."
 mkdir -p $BUILD_DIR
 cd $BUILD_DIR
 
-# Cross-compile for Linux (Lambda runtime)
 log_info "Cross-compiling Go binary for Lambda..."
 GOOS=linux GOARCH=amd64 go build -o bootstrap ../cmd/lambda/main.go
 
@@ -183,12 +170,10 @@ if [ ! -f "bootstrap" ]; then
     exit 1
 fi
 
-# Create deployment package
 log_info "Creating deployment ZIP..."
 rm -f $ZIP_FILE
 zip $ZIP_FILE bootstrap
 
-# Verify ZIP was created
 if [ ! -f "$ZIP_FILE" ]; then
     log_error "Failed to create deployment ZIP"
     exit 1
@@ -197,23 +182,18 @@ fi
 ZIP_SIZE=$(stat -f%z "$ZIP_FILE" 2>/dev/null || stat -c%s "$ZIP_FILE" 2>/dev/null)
 log_info "Deployment package size: $(( ZIP_SIZE / 1024 ))KB"
 
-# Update Lambda function code with retry logic
 log_step "Step 1: Updating Lambda function code with retry logic..."
 if ! update_with_retry "code"; then
     log_error "Failed to update Lambda function code after retries"
     exit 1
 fi
 
-# Wait for code update to complete before proceeding
 if ! wait_for_lambda_ready "$FUNCTION_NAME" 120; then
     log_error "Lambda code update did not complete in time"
     exit 1
 fi
 
-# Update environment variables with retry logic
 log_step "Step 2: Updating Lambda environment variables with retry logic..."
-
-# Create temporary JSON file for environment variables
 TEMP_ENV_FILE="/tmp/lambda-env-${RANDOM}.json"
 cat > "$TEMP_ENV_FILE" << EOF
 {
@@ -226,26 +206,20 @@ cat > "$TEMP_ENV_FILE" << EOF
 }
 EOF
 
-# Update Lambda configuration with retry logic
 if ! update_with_retry "config"; then
     rm -f "$TEMP_ENV_FILE"
     log_error "Failed to update Lambda environment variables after retries"
     exit 1
 fi
 
-# Clean up temporary file
 rm -f "$TEMP_ENV_FILE"
 
-# Wait for configuration update to complete
 if ! wait_for_lambda_ready "$FUNCTION_NAME" 60; then
     log_error "Lambda configuration update did not complete in time"
     exit 1
 fi
 
-# Verify the configuration was applied with retry
 log_step "Step 3: Verifying environment variables were updated..."
-
-# Sometimes there's a delay in configuration propagation, so retry verification
 VERIFY_RETRIES=3
 VERIFY_COUNT=0
 VERIFICATION_SUCCESS=false
@@ -279,11 +253,8 @@ if [ "$VERIFICATION_SUCCESS" != "true" ]; then
     exit 1
 fi
 
-# Cleanup
 cd ..
 rm -rf $BUILD_DIR
-
-# Success message
 log_info "✅ Deployment completed successfully!"
 echo ""
 echo "📧 Email recipient configured: $RECIPIENT_EMAIL"

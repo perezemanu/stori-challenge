@@ -15,10 +15,8 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// NewConnection creates a new SQLite database connection
 // LOCAL DEVELOPMENT ONLY - AWS Lambda processes transactions in memory without database
 func NewConnection(cfg config.Database) (*gorm.DB, error) {
-	// Configure GORM for SQLite (local development only)
 	gormConfig := &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 		NowFunc: func() time.Time {

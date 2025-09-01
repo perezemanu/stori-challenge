@@ -12,12 +12,10 @@ import (
 // Calculator handles financial calculations
 type Calculator struct{}
 
-// NewCalculator creates a new calculator instance
 func NewCalculator() *Calculator {
 	return &Calculator{}
 }
 
-// CalculateSummary calculates the account summary from transactions
 func (c *Calculator) CalculateSummary(accountID string, transactions []*domain.Transaction) (*domain.AccountSummary, error) {
 	if len(transactions) == 0 {
 		return &domain.AccountSummary{
@@ -29,13 +27,11 @@ func (c *Calculator) CalculateSummary(accountID string, transactions []*domain.T
 		}, nil
 	}
 
-	// Calculate total balance
 	totalBalance := decimal.Zero
 	for _, tx := range transactions {
 		totalBalance = totalBalance.Add(tx.Amount)
 	}
 
-	// Group transactions by month and calculate monthly summaries
 	monthlyData := c.groupTransactionsByMonth(transactions)
 	monthlySummaries := make(map[string]domain.MonthlySummary)
 

@@ -1,0 +1,9 @@
+# Docker Compose override for Gmail email mode
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.gmail.yml up
+version: '3.8'
+
+services:
+  stori-processor:
+    environment:
+      # Switch to Gmail mode for real email delivery
+      - EMAIL_MODE=gmail
