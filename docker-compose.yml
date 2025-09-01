@@ -9,15 +9,24 @@ services:
       - DB_DRIVER=sqlite
       - DATA_PATH=/app/data
       
-      # Email configuration (using Gmail for real emails)
-      - SMTP_HOST=smtp.gmail.com
-      - SMTP_PORT=587
-      - SMTP_USERNAME=perezetchegaraymanuel@gmail.com
-      - SMTP_PASSWORD=egqa bkrk xpxt ytng
+      # Hybrid Email Configuration
+      - EMAIL_MODE=development  # Options: development (MailHog), gmail (real Gmail)
+      
+      # MailHog Configuration (development mode)
+      - MAILHOG_HOST=mailhog
+      - MAILHOG_PORT=1025
+      
+      # Gmail Configuration (for switching to real emails)
+      - GMAIL_HOST=smtp.gmail.com
+      - GMAIL_PORT=587
+      - GMAIL_USERNAME=${GMAIL_USERNAME:-your-email@gmail.com}
+      - GMAIL_PASSWORD=${GMAIL_PASSWORD:-your-app-password}
+      
+      # General Email Configuration
       - FROM_ADDRESS=noreply@stori.com
       - FROM_NAME=Stori Account Summary
-      - TO_ADDRESS=perezetchegaraymanuel@gmail.com
-      - TO_NAME=Tu Nombre
+      - TO_ADDRESS=${TO_ADDRESS:-test@example.com}
+      - TO_NAME=${TO_NAME:-Test User}
       
       - LOG_LEVEL=info
       
