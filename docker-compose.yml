@@ -1,0 +1,47 @@
+services:
+  stori-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stori-transaction-processor
+    environment:
+      # Database configuration (using SQLite)
+      - DB_DRIVER=sqlite
+      - DATA_PATH=/app/data
+      
+      # Email configuration (using Gmail for real emails)
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USERNAME=perezetchegaraymanuel@gmail.com
+      - SMTP_PASSWORD=egqa bkrk xpxt ytng
+      - FROM_ADDRESS=noreply@stori.com
+      - FROM_NAME=Stori Account Summary
+      - TO_ADDRESS=perezetchegaraymanuel@gmail.com
+      - TO_NAME=Tu Nombre
+      
+      - LOG_LEVEL=info
+      
+      - MAX_FILE_SIZE=10485760
+      - MAX_TRANSACTIONS=100000
+    volumes:
+      - ./testdata:/app/data:ro
+      - ./data:/app/db
+    depends_on:
+      - mailhog
+    networks:
+      - stori-network
+    restart: no
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: stori-mailhog
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    networks:
+      - stori-network
+    restart: unless-stopped
+
+networks:
+  stori-network:
+    driver: bridge
