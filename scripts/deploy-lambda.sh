@@ -6,19 +6,16 @@
 
 set -e
 
-# Default values
 FUNCTION_NAME="${2:-stori-processor}"
 RECIPIENT_EMAIL="${1}"
 BUILD_DIR="build"
 ZIP_FILE="lambda-deployment.zip"
 
-# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Helper functions
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
@@ -103,15 +100,15 @@ update_with_retry() {
         # Execute the operation
         case "$operation" in
             "code")
-                aws lambda update-function-code \
+                output=$(aws lambda update-function-code \
                     --function-name "$FUNCTION_NAME" \
-                    --zip-file "fileb://$ZIP_FILE" 2>&1
+                    --zip-file "fileb://$ZIP_FILE" 2>&1)
                 local exit_code=$?
                 ;;
             "config")
-                aws lambda update-function-configuration \
+                output=$(aws lambda update-function-configuration \
                     --function-name "$FUNCTION_NAME" \
-                    --environment "file://$TEMP_ENV_FILE" 2>&1
+                    --environment "file://$TEMP_ENV_FILE" 2>&1)
                 local exit_code=$?
                 ;;
             *)
