@@ -22,7 +22,7 @@ make clean         # Clean build artifacts and coverage files
 # Build Docker image
 make docker-build
 
-# Development Mode (Email Testing), you can use this for checking the emails in this http://localhost:8025 before sending
+# Development Mode (Email Testing), you can use this for checking the emails in this http://localhost:8025 before sending to a real email
 make docker-run-mailhog    # 🧪 MailHog captures emails (no real sending)
                            # Web UI: http://localhost:8025
 
