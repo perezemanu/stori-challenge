@@ -67,7 +67,7 @@ Located in `./scripts/` directory for AWS deployment:
 # → Validates configuration was applied correctly
 
 # Test Lambda deployment
-./scripts/test-lambda.sh [function-name] [bucket-name]
+./scripts/test-lambda.sh
 # → Uploads test CSV to S3
 # → Monitors Lambda execution
 # → Shows CloudWatch logs
